@@ -1,11 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { rerender, render, fireEvent, waitFor, screen } from '@testing-library/react';
-import { fetchShow as mockFetchShow } from './api/fetchShow'
-import userEvent from '@testing-library/user-event'
-import App from './App'
-import { act } from 'react-dom/test-utils';
 
-jest.mock('./api/fetchShow');
+import Episodes from './Episodes';
+import { formatSeasons } from "../utils/formatSeasons";
+
+// mock data
 
 const mockObject = 
     {
@@ -605,23 +604,25 @@ const mockObject =
             }
           ]
         }
-    }
+    };
 
+const mockEpisodes = formatSeasons(mockObject._embedded.episodes)
+const season1Episodes = mockEpisodes['Season 1'];
+const season2Episodes = mockEpisodes['Season 2'];
+const season3Episodes = mockEpisodes['Season 3'];
+const season4Episodes = mockEpisodes['Season 4'];
 
+const mockSeasonsArr = [season1Episodes, season2Episodes, season3Episodes, season4Episodes];
 
-test('renders app without errors and show image is on page with alt text from API object', async () => {
-    await mockFetchShow.mockResolvedValueOnce(mockObject);
-    render (<App/>);
-    expect(await screen.findByAltText(mockObject.name)).toBeInTheDocument();
-});
+// test
 
-// test ('renders episodes from proper season', async () => {
-//     await mockFetchShow.mockResolvedValueOnce(mockObject); // mock function
-//     render (<App/>); // wait for mock api to render
-//     const dropdown = await screen.findByText(/select a season/i); // select dropdown
-//     expect(dropdown).toBeInTheDocument()
-//     // fireEvent.click(dropdown.parentNode.parentNode); // click on dropdown 
-//     // const season1 = screen.getByText(/season 1/i);
-
- 
-// });
+test('component renders without errors and shows names of episodes for each season when receiving them as props', async () => {
+    const {rerender} = render(<Episodes episodes = {[]}/>);
+    rerender(<Episodes episodes = {season1Episodes}/>);
+    mockSeasonsArr.forEach((season) => {
+        rerender(<Episodes episodes = {season}/>)
+        season.forEach((episode) => {
+            expect(screen.getByText(episode.name)).toBeInTheDocument();
+        })
+    })
+})
